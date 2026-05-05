@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}{{ university.name }} — Global Universities Explorer{% endblock %}
+
+{% block content %}
+<div class="uni-hero-header">
+    <div class="container">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <a href="javascript:history.back()" class="btn btn-sm btn-outline-light"><i class="fas fa-arrow-left me-1"></i>Back</a>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="uni-hero-title">{{ university.name }}</h1>
+                <div class="uni-hero-meta d-flex flex-wrap gap-3 mt-2">
+                    <span><i class="fas fa-map-marker-alt me-1"></i>{{ university.city }}, {{ university.country_name }}</span>
+                    {% if university.founded_year %}
+                    <span><i class="fas fa-calendar me-1"></i>Founded {{ university.founded_year }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{{ university.website }}" target="_blank" class="btn btn-light btn-lg">
+                    <i class="fas fa-globe me-2"></i>Official Website
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- About -->
+        <div class="col-lg-8">
+            <div class="detail-card mb-4">
+                <h3><i class="fas fa-university me-2 text-primary"></i>About</h3>
+                <p class="lead">{{ university.description }}</p>
+            </div>
+
+            <!-- Programs -->
+            <div class="detail-card">
+                <h3 class="mb-4"><i class="fas fa-graduation-cap me-2 text-primary"></i>Programs Offered</h3>
+
+                {% set degree_order = ['Undergraduate', 'Masters', 'PhD'] %}
+                {% for degree in degree_order %}
+                {% set deg_programs = programs | selectattr('degree_level', 'equalto', degree) | list %}
+                {% if deg_programs %}
+                <div class="mb-4">
+                    <h5 class="degree-section-title degree-{{ degree|lower|replace(' ','') }}">
+                        {% if degree == 'Undergraduate' %}🎓{% elif degree == 'Masters' %}📚{% else %}🔬{% endif %}
+                        {{ degree }}
+                    </h5>
+                    <div class="row g-3">
+                        {% for p in deg_programs %}
+                        <div class="col-md-6">
+                            <div class="program-card">
+                                <div class="prog-name">{{ p.name }}</div>
+                                <div class="prog-details">
+                                    <span class="prog-field">{{ p.field_of_study }}</span>
+                                    <span class="prog-lang"><i class="fas fa-language me-1"></i>{{ p.language }}</span>
+                                </div>
+                                <div class="prog-stats d-flex justify-content-between mt-2">
+                                    <span class="prog-gpa">Min GPA: <strong>{{ p.min_gpa }}</strong></span>
+                                    <span class="prog-fee">
+                                        {% if p.tuition_fee and p.tuition_fee > 0 %}
+                                            ${{ "{:,}".format(p.tuition_fee) }}/yr
+                                        {% else %}
+                                            Free
+                                        {% endif %}
+                                    </span>
+                                    {% if p.duration_years %}
+                                    <span class="prog-dur">{{ p.duration_years }} yr</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="detail-sidebar sticky-lg-top" style="top:80px">
+                <div class="apply-box mb-4">
+                    <h4>Ready to Apply?</h4>
+                    <p class="small">Visit the official website for admission requirements and application portal.</p>
+                    <a href="{{ university.website }}" target="_blank" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-paper-plane me-2"></i>Apply Now
+                    </a>
+                </div>
+
+                <div class="detail-card">
+                    <h5 class="mb-3">Quick Info</h5>
+                    <div class="info-row">
+                        <span class="info-label">Country</span>
+                        <span class="info-value">{{ university.country_name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">City</span>
+                        <span class="info-value">{{ university.city }}</span>
+                    </div>
+                    {% if university.founded_year %}
+                    <div class="info-row">
+                        <span class="info-label">Founded</span>
+                        <span class="info-value">{{ university.founded_year }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="info-row">
+                        <span class="info-label">Programs</span>
+                        <span class="info-value">{{ programs|length }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Degrees</span>
+                        <span class="info-value">
+                            {% set levels = programs | map(attribute='degree_level') | unique | list %}
+                            {{ levels | join(', ') }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-3 d-flex gap-2">
+                    <button class="btn btn-outline-secondary flex-grow-1" onclick="saveFavorite({{ university.id }}, '{{ university.name }}')">
+                        <i class="fas fa-heart me-1"></i>Save
+                    </button>
+                    <a href="/compare?add={{ university.id }}" class="btn btn-outline-primary flex-grow-1">
+                        <i class="fas fa-balance-scale me-1"></i>Compare
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

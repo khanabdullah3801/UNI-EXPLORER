@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Global Universities Explorer — Find Your Dream University{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero-section">
+    <div class="hero-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    <div class="container">
+        <div class="row align-items-center min-vh-80">
+            <div class="col-lg-7">
+                <div class="hero-badge mb-3">
+                    <span><i class="fas fa-globe-americas me-1"></i> 7 Countries · {{ uni_count }}+ Universities · {{ prog_count }}+ Programs</span>
+                </div>
+                <h1 class="hero-title">
+                    Find Your<br>
+                    <span class="text-gradient">Perfect University</span><br>
+                    Abroad
+                </h1>
+                <p class="hero-subtitle mt-3 mb-4">
+                    Explore top universities worldwide, check your eligibility, and discover the best programs matching your academic profile and budget.
+                </p>
+                <div class="hero-actions d-flex flex-wrap gap-3">
+                    <a href="/explore" class="btn btn-primary btn-lg px-4">
+                        <i class="fas fa-search me-2"></i>Explore Universities
+                    </a>
+                    <a href="/eligibility" class="btn btn-outline-light btn-lg px-4">
+                        <i class="fas fa-check-circle me-2"></i>Check Eligibility
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="hero-illustration">
+                    <div class="floating-card fc-1">
+                        <div class="fc-flag"><i class="fas fa-university text-primary-light"></i></div>
+                        <div>
+                            <div class="fc-name">Oxford</div>
+                            <div class="fc-sub">World Rank #1</div>
+                        </div>
+                    </div>
+                    <div class="floating-card fc-2">
+                        <div class="fc-flag"><i class="fas fa-microscope text-primary-light"></i></div>
+                        <div>
+                            <div class="fc-name">MIT</div>
+                            <div class="fc-sub">STEM Leader</div>
+                        </div>
+                    </div>
+                    <div class="floating-card fc-3">
+                        <div class="fc-flag"><i class="fas fa-lightbulb text-primary-light"></i></div>
+                        <div>
+                            <div class="fc-name">TU Munich</div>
+                            <div class="fc-sub">Free Tuition</div>
+                        </div>
+                    </div>
+                    <div class="hero-globe"><i class="fas fa-globe"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Search -->
+<section class="quick-search-section">
+    <div class="container">
+        <div class="quick-search-box">
+            <h3 class="text-center mb-4">Quick University Search</h3>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <select class="form-select" id="qs-country">
+                        <option value="">All Countries</option>
+                        {% for c in countries %}
+                        <option value="{{ c.name }}">{{ c.flag_emoji }} {{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="qs-degree">
+                        <option value="">All Degrees</option>
+                        <option>Undergraduate</option>
+                        <option>Masters</option>
+                        <option>PhD</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="qs-field">
+                        <option value="">All Fields</option>
+                        <option>Computer Science</option>
+                        <option>Engineering</option>
+                        <option>Business</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" onclick="quickSearch()">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Countries Grid -->
+<section class="countries-section py-5">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <h2 class="section-title">Explore by Country</h2>
+            <p class="section-subtitle">Click a country to discover universities</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            {% for c in countries %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="/country/{{ c.id }}" class="country-card d-block text-decoration-none">
+                    <div class="cc-flag">{{ c.flag_emoji }}</div>
+                    <div class="cc-name">{{ c.name }}</div>
+                    <div class="cc-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-search"></i></div>
+                    <h4>Smart Filtering</h4>
+                    <p>Filter universities by country, degree, field, language, budget, and GPA requirements.</p>
+                    <a href="/explore" class="btn btn-sm btn-outline-primary mt-2">Explore →</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card featured">
+                    <div class="feature-icon"><i class="fas fa-check-circle"></i></div>
+                    <h4>Eligibility Checker</h4>
+                    <p>Enter your GPA and preferences to instantly see which universities you qualify for.</p>
+                    <a href="/eligibility" class="btn btn-sm btn-primary mt-2">Check Now →</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-star"></i></div>
+                    <h4>Recommendations</h4>
+                    <p>Get personalized university recommendations based on your academic profile and budget.</p>
+                    <a href="/recommendations" class="btn btn-sm btn-outline-primary mt-2">Get Picks →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats -->
+<section class="stats-section py-5">
+    <div class="container">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number">7</div>
+                <div class="stat-label">Countries</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-number">{{ uni_count }}</div>
+                <div class="stat-label">Universities</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-number">{{ prog_count }}+</div>
+                <div class="stat-label">Programs</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Degree Levels</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function quickSearch() {
+    const country = document.getElementById('qs-country').value;
+    const degree = document.getElementById('qs-degree').value;
+    const field = document.getElementById('qs-field').value;
+    const params = new URLSearchParams();
+    if (country) params.set('country', country);
+    if (degree) params.set('degree', degree);
+    if (field) params.set('field', field);
+    window.location.href = '/explore?' + params.toString();
+}
+</script>
+{% endblock %}

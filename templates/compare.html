@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Compare Universities — Global Universities Explorer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-balance-scale me-3"></i>Compare Universities</h1>
+        <p class="page-subtitle">Select up to 3 universities to compare side by side</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="compare-search-box">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-lg" id="compare-search"
+                           placeholder="Search university name..." oninput="searchCompare()">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+                <div id="compare-search-results" class="compare-search-dropdown d-none"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selected items -->
+    <div id="selected-unis" class="row g-4 mb-4 justify-content-center" style="min-height:80px">
+        <div class="col-12 text-center text-muted" id="empty-compare">
+            <p>Search and add universities above to start comparing</p>
+        </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div id="compare-table-wrap" class="d-none">
+        <div class="compare-table-card">
+            <table class="table compare-table" id="compare-table">
+                <thead>
+                    <tr id="compare-head-row">
+                        <th class="attr-col">Attribute</th>
+                    </tr>
+                </thead>
+                <tbody id="compare-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedUnis = {};
+
+async function searchCompare() {
+    const q = document.getElementById('compare-search').value.trim();
+    if (q.length < 2) {
+        document.getElementById('compare-search-results').classList.add('d-none');
+        return;
+    }
+    const res = await fetch('/api/universities?q=' + encodeURIComponent(q));
+    const data = await res.json();
+    const filtered = data.filter(u => u.name.toLowerCase().includes(q.toLowerCase()));
+
+    const dd = document.getElementById('compare-search-results');
+    if (filtered.length === 0) { dd.classList.add('d-none'); return; }
+    dd.innerHTML = filtered.slice(0, 8).map(u =>
+        `<div class="compare-dd-item" onclick="addToCompare(${u.id}, '${u.name.replace(/'/g,"\\'")}', '${u.country}', '${u.website}')">
+            <strong>${u.name}</strong> <small class="text-muted">${u.country}</small>
+        </div>`
+    ).join('');
+    dd.classList.remove('d-none');
+}
+
+async function addToCompare(id, name, country, website) {
+    if (Object.keys(selectedUnis).length >= 3) {
+        alert('You can compare up to 3 universities at a time.');
+        return;
+    }
+    if (selectedUnis[id]) return;
+
+    document.getElementById('compare-search-results').classList.add('d-none');
+    document.getElementById('compare-search').value = '';
+
+    const res = await fetch('/api/university/' + id);
+    const data = await res.json();
+    selectedUnis[id] = data;
+    renderSelected();
+    renderTable();
+}
+
+function removeFromCompare(id) {
+    delete selectedUnis[id];
+    renderSelected();
+    renderTable();
+}
+
+function renderSelected() {
+    const keys = Object.keys(selectedUnis);
+    const container = document.getElementById('selected-unis');
+    document.getElementById('empty-compare').style.display = keys.length === 0 ? 'block' : 'none';
+
+    const chips = keys.map(id => {
+        const u = selectedUnis[id];
+        return `<div class="col-auto">
+            <div class="selected-chip">
+                <span>${u.name}</span>
+                <button onclick="removeFromCompare(${id})" class="chip-remove">×</button>
+            </div>
+        </div>`;
+    }).join('');
+    // rebuild without removing empty div
+    container.innerHTML = '<div class="col-12 text-center text-muted" id="empty-compare" style="display:none"><p>Search and add universities above</p></div>' + chips;
+    if (keys.length === 0) document.getElementById('empty-compare').style.display = 'block';
+}
+
+function renderTable() {
+    const keys = Object.keys(selectedUnis);
+    const wrap = document.getElementById('compare-table-wrap');
+    if (keys.length < 2) { wrap.classList.add('d-none'); return; }
+    wrap.classList.remove('d-none');
+
+    const unis = keys.map(id => selectedUnis[id]);
+
+    // Header
+    const headRow = document.getElementById('compare-head-row');
+    headRow.innerHTML = '<th class="attr-col">Attribute</th>' +
+        unis.map(u => `<th class="text-center">${u.name}<br><small class="text-muted">${u.country_name}</small></th>`).join('');
+
+    const degreeSet = ['Undergraduate', 'Masters', 'PhD'];
+    const attributes = [
+        { label: 'City', fn: u => u.city },
+        { label: 'Country', fn: u => u.country_name },
+        { label: 'Founded', fn: u => u.founded_year || 'N/A' },
+        { label: 'Website', fn: u => `<a href="${u.website}" target="_blank">Official Site</a>` },
+        { label: '— Programs —', fn: () => '', header: true },
+        ...degreeSet.map(deg => ({
+            label: deg,
+            fn: u => {
+                const progs = (u.programs || []).filter(p => p.degree_level === deg);
+                if (!progs.length) return '<span class="text-muted">—</span>';
+                return progs.map(p => `<div class="small">${p.name}<br><span class="text-muted">GPA ${p.min_gpa} · ${p.tuition_fee > 0 ? '$'+p.tuition_fee.toLocaleString() : 'Free'}/yr</span></div>`).join('');
+            }
+        })),
+    ];
+
+    const tbody = document.getElementById('compare-tbody');
+    tbody.innerHTML = attributes.map(attr => {
+        if (attr.header) return `<tr class="table-section-header"><td colspan="${unis.length + 1}"><strong>${attr.label}</strong></td></tr>`;
+        return `<tr>
+            <td class="attr-col"><strong>${attr.label}</strong></td>
+            ${unis.map(u => `<td class="text-center align-middle">${attr.fn(u)}</td>`).join('')}
+        </tr>`;
+    }).join('');
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.compare-search-box')) {
+        document.getElementById('compare-search-results').classList.add('d-none');
+    }
+});
+</script>
+{% endblock %}

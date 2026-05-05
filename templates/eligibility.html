@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Eligibility Checker — Global Universities Explorer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-check-circle me-3"></i>Eligibility Checker</h1>
+        <p class="page-subtitle">Find out which universities you qualify for based on your academic profile</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="eligibility-form-card">
+                <h3 class="mb-4">Enter Your Academic Profile</h3>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Your GPA <span class="text-muted">(out of 4.0)</span></label>
+                        <div class="gpa-input-wrap">
+                            <input type="number" class="form-control form-control-lg" id="e-gpa"
+                                   min="0" max="4.0" step="0.01" placeholder="e.g. 3.5" oninput="updateGpaDisplay()">
+                            <span class="gpa-preview" id="gpa-display">—</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Degree Level</label>
+                        <select class="form-select form-select-lg" id="e-degree">
+                            <option value="">Any Level</option>
+                            <option>Undergraduate</option>
+                            <option>Masters</option>
+                            <option>PhD</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Field of Study</label>
+                        <select class="form-select" id="e-field">
+                            <option value="">Any Field</option>
+                            {% for f in fields %}
+                            <option>{{ f.field_of_study }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Language Preference</label>
+                        <select class="form-select" id="e-language">
+                            <option value="">Any Language</option>
+                            <option>English</option>
+                            <option>German</option>
+                            <option>French</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Max Annual Budget (USD)</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="range" class="form-range flex-grow-1" id="e-budget"
+                                   min="0" max="80000" step="1000" value="80000" oninput="updateBudgetLabel()">
+                            <span id="budget-label" class="fw-bold text-primary" style="min-width:80px">Any</span>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-primary btn-lg w-100" onclick="checkEligibility()">
+                            <i class="fas fa-search me-2"></i>Check Eligibility
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="eligibility-legend my-4 text-center">
+        <span class="elig-badge eligible me-3"><i class="fas fa-check-circle me-1"></i>Eligible</span>
+        <span class="elig-badge borderline me-3"><i class="fas fa-exclamation-circle me-1"></i>Borderline (±0.3 GPA)</span>
+        <span class="elig-badge not_eligible"><i class="fas fa-times-circle me-1"></i>Not Eligible</span>
+    </div>
+
+    <!-- Results -->
+    <div id="elig-loading" class="text-center py-5 d-none">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2">Checking eligibility...</p>
+    </div>
+
+    <div id="elig-results"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateGpaDisplay() {
+    const v = parseFloat(document.getElementById('e-gpa').value);
+    const el = document.getElementById('gpa-display');
+    if (isNaN(v)) { el.textContent = '—'; el.className = 'gpa-preview'; return; }
+    el.textContent = v.toFixed(2);
+    el.className = 'gpa-preview ' + (v >= 3.7 ? 'excellent' : v >= 3.3 ? 'good' : v >= 3.0 ? 'average' : 'low');
+}
+
+function updateBudgetLabel() {
+    const v = parseInt(document.getElementById('e-budget').value);
+    document.getElementById('budget-label').textContent = v >= 80000 ? 'Any' : '$' + v.toLocaleString();
+}
+
+async function checkEligibility() {
+    const gpa = parseFloat(document.getElementById('e-gpa').value);
+    if (isNaN(gpa) || gpa < 0 || gpa > 4.0) {
+        alert('Please enter a valid GPA between 0 and 4.0');
+        return;
+    }
+    const degree = document.getElementById('e-degree').value;
+    const field = document.getElementById('e-field').value;
+    const language = document.getElementById('e-language').value;
+    const budget = parseInt(document.getElementById('e-budget').value);
+
+    const params = new URLSearchParams({ gpa });
+    if (degree) params.set('degree', degree);
+    if (field) params.set('field', field);
+    if (language) params.set('language', language);
+    if (budget < 80000) params.set('budget', budget);
+
+    document.getElementById('elig-loading').classList.remove('d-none');
+    document.getElementById('elig-results').innerHTML = '';
+
+    const res = await fetch('/api/eligibility?' + params.toString());
+    const data = await res.json();
+    document.getElementById('elig-loading').classList.add('d-none');
+
+    const grouped = { eligible: [], borderline: [], not_eligible: [] };
+    data.forEach(d => grouped[d.status].push(d));
+
+    let html = '';
+    const sections = [
+        { key: 'eligible', label: '<i class="fas fa-check-circle me-1"></i> Eligible', cls: 'eligible' },
+        { key: 'borderline', label: '<i class="fas fa-exclamation-circle me-1"></i> Borderline', cls: 'borderline' },
+        { key: 'not_eligible', label: '<i class="fas fa-times-circle me-1"></i> Not Eligible', cls: 'not_eligible' },
+    ];
+
+    sections.forEach(sec => {
+        if (grouped[sec.key].length === 0) return;
+        html += `<div class="elig-section mb-4">
+            <h4 class="elig-section-title elig-${sec.cls}">${sec.label} — ${grouped[sec.key].length} program${grouped[sec.key].length > 1 ? 's' : ''}</h4>
+            <div class="row g-3">`;
+        grouped[sec.key].forEach(u => {
+            const fee = u.tuition_fee > 0 ? '$' + u.tuition_fee.toLocaleString() + '/yr' : 'Free';
+            html += `<div class="col-md-6 col-lg-4">
+                <div class="elig-card elig-${sec.cls}">
+                    <div class="elig-status-bar"></div>
+                    <div class="elig-card-body">
+                        <h6 class="elig-uni">${u.university}</h6>
+                        <div class="elig-prog">${u.program}</div>
+                        <div class="elig-country"><i class="fas fa-map-marker-alt me-1"></i>${u.country}</div>
+                        <div class="elig-meta d-flex gap-2 mt-2 flex-wrap">
+                            <span>Min GPA: <strong>${u.min_gpa}</strong></span>
+                            <span>Fee: <strong>${fee}</strong></span>
+                            <span>Lang: <strong>${u.language}</strong></span>
+                        </div>
+                        <div class="mt-2 d-flex gap-2">
+                            <a href="/university/${u.university_id}" class="btn btn-sm btn-primary flex-grow-1">Details</a>
+                            <a href="${u.website}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        });
+        html += `</div></div>`;
+    });
+
+    if (data.length === 0) {
+        html = `<div class="text-center py-5 text-muted">
+            <i class="fas fa-search-minus" style="font-size:3rem"></i>
+            <h4>No programs found matching your criteria</h4>
+            <p class="text-muted">Try adjusting your filters</p>
+        </div>`;
+    }
+
+    document.getElementById('elig-results').innerHTML = html;
+}
+</script>
+{% endblock %}

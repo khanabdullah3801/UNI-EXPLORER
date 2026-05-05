@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Countries — Global Universities Explorer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-globe me-3"></i>Study Destinations</h1>
+        <p class="page-subtitle">Choose a country to explore its universities</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+        {% for c in countries %}
+        <div class="col-md-6 col-lg-4">
+            <a href="/country/{{ c.id }}" class="country-detail-card d-block text-decoration-none">
+                <div class="cdc-header">
+                    <span class="cdc-flag">{{ c.flag_emoji }}</span>
+                    <div class="cdc-badge">{{ c.uni_count }} Universities</div>
+                </div>
+                <div class="cdc-body">
+                    <h3 class="cdc-name">{{ c.name }}</h3>
+                    <p class="cdc-desc">{{ c.description }}</p>
+                </div>
+                <div class="cdc-footer">
+                    <span>Explore Universities <i class="fas fa-arrow-right ms-2"></i></span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

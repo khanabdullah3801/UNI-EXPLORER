@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Scholarships — UniExplorer{% endblock %}
+
+{% block content %}
+<div class="page-header mb-5">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-graduation-cap me-3"></i>Global Scholarships</h1>
+        <p class="page-subtitle">Find financial aid opportunities to fund your international education</p>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row g-4">
+        {% for s in scholarships %}
+        <div class="col-md-6 col-lg-4">
+            <div class="scholarship-card h-100 shadow-sm hover-shadow transition-all border-0 rounded-4 overflow-hidden bg-white">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                            <i class="fas fa-money-bill-wave me-1"></i> {{ s.amount }}
+                        </span>
+                        {% if s.deadline %}
+                        <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> Deadline: {{ s.deadline.strftime('%b %d, %Y') }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="card-title fw-bold mb-2 text-dark">{{ s.name }}</h5>
+                    
+                    <div class="mb-3">
+                        {% if s.university_name %}
+                        <div class="text-muted small mb-1">
+                            <i class="fas fa-university me-1"></i> {{ s.university_name }}
+                        </div>
+                        {% endif %}
+                        <div class="text-muted small">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ s.country_name }}
+                        </div>
+                    </div>
+
+                    <p class="card-text text-muted small mb-4 line-clamp-3">
+                        {{ s.description }}
+                    </p>
+
+                    <div class="mt-auto">
+                        <a href="{{ s.link }}" target="_blank" class="btn btn-outline-primary btn-sm w-100 rounded-pill py-2">
+                            Official Website <i class="fas fa-external-link-alt ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if not scholarships %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
+            <h3>No scholarships found</h3>
+            <p class="text-muted">Check back later for new opportunities.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.scholarship-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.scholarship-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important;
+}
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3; /* Standard property for compatibility */
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
+}
+</style>
+{% endblock %}

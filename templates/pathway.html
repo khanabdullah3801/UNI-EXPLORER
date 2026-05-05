@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}Student Success Roadmap — UniExplorer{% endblock %}
+
+{% block content %}
+<div class="page-header mb-5 py-5 bg-dark text-white text-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3"><i class="fas fa-route me-3 text-primary"></i>Success Roadmap</h1>
+        <p class="lead opacity-75">Your comprehensive, country-specific guide from prep to visa</p>
+        
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-5">
+                <div class="input-group input-group-lg shadow-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-map-marker-alt text-primary"></i></span>
+                    <select class="form-select border-start-0" id="countrySelector" onchange="updateRoadmap()">
+                        <option value="UK">United Kingdom (UK)</option>
+                        <option value="USA">United States (USA)</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Germany">Germany</option>
+                        <option value="France">France</option>
+                        <option value="Turkey">Turkey</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row g-5">
+        <!-- Main Timeline -->
+        <div class="col-lg-8">
+            <div id="roadmap-content">
+                <!-- Content will be injected by JS -->
+            </div>
+        </div>
+
+        <!-- Sidebar Resources -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 100px;">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3"><i class="fas fa-link me-2 text-primary"></i>Official Resources</h5>
+                        <div class="d-grid gap-2">
+                            <a href="https://www.ielts.org/" target="_blank" class="btn btn-outline-secondary btn-sm text-start py-2">
+                                <i class="fas fa-language me-2"></i> IELTS Official Site
+                            </a>
+                            <a href="https://www.ets.org/toefl" target="_blank" class="btn btn-outline-secondary btn-sm text-start py-2">
+                                <i class="fas fa-language me-2"></i> TOEFL Official Site
+                            </a>
+                            <div id="dynamic-links" class="d-grid gap-2 mt-2">
+                                <!-- Dynamic links like UCAS/CommonApp will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 bg-primary text-white rounded-4 shadow">
+                    <div class="card-body p-4 text-center">
+                        <i class="fas fa-headset fa-3x mb-3 opacity-50"></i>
+                        <h5 class="fw-bold">Need Consultation?</h5>
+                        <p class="small opacity-75">Connect with our certified education counselors for a personalized 1-on-1 session.</p>
+                        <button class="btn btn-light w-100 rounded-pill fw-bold">Book a Session</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const countryData = {
+    'UK': {
+        visaName: 'Student Visa (formerly Tier 4)',
+        visaLink: 'https://www.gov.uk/student-visa',
+        appPortal: 'UCAS (Undergraduate)',
+        appLink: 'https://www.ucas.com/',
+        steps: [
+            { title: 'Step 1: Test & UCAS', desc: 'Secure your IELTS/PTE score. For undergraduate study, apply through UCAS. For Masters, apply directly to the uni.', icon: 'fas fa-pencil-alt' },
+            { title: 'Step 2: Receive CAS', desc: 'Once you accept your unconditional offer, the university will issue a **CAS (Confirmation of Acceptance for Studies)** letter.', icon: 'fas fa-envelope-open-text' },
+            { title: 'Step 3: Financial Proof', desc: 'Show you have enough money to pay for 1 year of tuition plus £1,023 - £1,334 per month for living costs (held for 28 days).', icon: 'fas fa-wallet' },
+            { title: 'Step 4: Visa Application', desc: 'Apply online, pay the **IHS (Immigration Health Surcharge)** fee, and book your biometric appointment.', icon: 'fas fa-passport' }
+        ]
+    },
+    'USA': {
+        visaName: 'F-1 Student Visa',
+        visaLink: 'https://travel.state.gov/content/travel/en/us-visas/study/student-visa.html',
+        appPortal: 'Common App',
+        appLink: 'https://www.commonapp.org/',
+        steps: [
+            { title: 'Step 1: SEVP School', desc: 'Apply to an SEVP-certified institution. Most use the Common App or direct portals.', icon: 'fas fa-university' },
+            { title: 'Step 2: Form I-20', desc: 'After admission, you receive a **Form I-20**. Pay the **SEVIS I-901 fee** immediately.', icon: 'fas fa-file-invoice-dollar' },
+            { title: 'Step 3: Form DS-160', desc: 'Complete the online non-immigrant visa application (DS-160) and upload your photo.', icon: 'fas fa-laptop-code' },
+            { title: 'Step 4: Interview', desc: 'Schedule and attend your visa interview at the US Embassy. Bring proof of financial ties to home country.', icon: 'fas fa-user-tie' }
+        ]
+    },
+    'Canada': {
+        visaName: 'Study Permit',
+        visaLink: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit.html',
+        appPortal: 'Direct University Portal',
+        appLink: 'https://www.universitystudy.ca/',
+        steps: [
+            { title: 'Step 1: LOA', desc: 'Get a **Letter of Acceptance (LOA)** from a Designated Learning Institution (DLI).', icon: 'fas fa-check-double' },
+            { title: 'Step 2: CAQ (Quebec Only)', desc: 'If studying in Quebec, apply for a **Certificat d\'acceptation du Québec** first.', icon: 'fas fa-map-pin' },
+            { title: 'Step 3: GIC Account', desc: 'Open a GIC account and deposit CAD $20,635 (as per 2024 rules) to show proof of living funds.', icon: 'fas fa-piggy-bank' },
+            { title: 'Step 4: Apply Online', desc: 'Submit your Study Permit application through the IRCC portal. Biometrics and medical exam may be required.', icon: 'fas fa-cloud-upload-alt' }
+        ]
+    },
+    'Germany': {
+        visaName: 'National Visa (D)',
+        visaLink: 'https://www.diplo.de/en/service/visa/05-visabestimmungen-allgemein',
+        appPortal: 'Uni-Assist',
+        appLink: 'https://www.uni-assist.de/en/',
+        steps: [
+            { title: 'Step 1: Uni-Assist', desc: 'Most German universities use Uni-Assist to verify international documents. Start 6 months early!', icon: 'fas fa-folder-open' },
+            { title: 'Step 2: Admission Offer', desc: 'Receive your Zulassungsbescheid (Letter of Admission). Public unis often have no tuition fees.', icon: 'fas fa-university' },
+            { title: 'Step 3: Blocked Account', desc: 'Open a **Sperrkonto (Blocked Account)** and deposit at least €11,208 to cover living expenses.', icon: 'fas fa-lock' },
+            { title: 'Step 4: Visa Appointment', desc: 'Book an appointment at the German Embassy. Health insurance is mandatory before you travel.', icon: 'fas fa-calendar-check' }
+        ]
+    },
+    'Australia': {
+        visaName: 'Student Visa (subclass 500)',
+        visaLink: 'https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500',
+        appPortal: 'Study Australia',
+        appLink: 'https://www.studyaustralia.gov.au/',
+        steps: [
+            { title: 'Step 1: Application', desc: 'Apply directly to the university. Ensure you meet the English and academic requirements.', icon: 'fas fa-graduation-cap' },
+            { title: 'Step 2: CoE', desc: 'Pay your tuition deposit to receive a **Confirmation of Enrolment (CoE)**.', icon: 'fas fa-file-contract' },
+            { title: 'Step 3: OSHC', desc: 'Purchase **Overseas Student Health Cover (OSHC)** for the duration of your stay.', icon: 'fas fa-heartbeat' },
+            { title: 'Step 4: GTE Requirement', desc: 'Write a Genuine Temporary Entrant (GTE) statement explaining your intent to return home after study.', icon: 'fas fa-file-alt' }
+        ]
+    },
+    'France': {
+        visaName: 'Long-stay Student Visa (VLS-TS)',
+        visaLink: 'https://france-visas.gouv.fr/',
+        appPortal: 'Campus France',
+        appLink: 'https://www.campusfrance.org/',
+        steps: [
+            { title: 'Step 1: Études en France', desc: 'Create an account on the **Campus France** portal to start your application.', icon: 'fas fa-sign-in-alt' },
+            { title: 'Step 2: Interview', desc: 'Attend an academic interview at your local Campus France office.', icon: 'fas fa-comments' },
+            { title: 'Step 3: EEF Procedure', desc: 'Once validated, you will receive a registration certificate to use for your visa application.', icon: 'fas fa-id-badge' },
+            { title: 'Step 4: Validation', desc: 'Upon arrival in France, you must validate your VLS-TS visa online within 3 months.', icon: 'fas fa-stamp' }
+        ]
+    },
+    'Turkey': {
+        visaName: 'Education Visa',
+        visaLink: 'https://www.mfa.gov.tr/visa-information-for-foreigners.en.mfa',
+        appPortal: 'Türkiye Bursları',
+        appLink: 'https://www.turkiyeburslari.gov.tr/',
+        steps: [
+            { title: 'Step 1: Admission Offer', desc: 'Get an official acceptance letter from a Turkish university.', icon: 'fas fa-check' },
+            { title: 'Step 2: Visa Application', desc: 'Apply for a student visa at the Turkish Embassy/Consulate in your country.', icon: 'fas fa-passport' },
+            { title: 'Step 3: University Enrollment', desc: 'Travel to Turkey and complete your final registration at the university campus.', icon: 'fas fa-hotel' },
+            { title: 'Step 4: Residence Permit', desc: 'Apply for a **Student Residence Permit** within 1 month of arrival in Turkey.', icon: 'fas fa-address-card' }
+        ]
+    }
+};
+
+function updateRoadmap() {
+    const country = document.getElementById('countrySelector').value;
+    const data = countryData[country];
+    
+    // Update Timeline
+    let html = '';
+    data.steps.forEach((step, index) => {
+        html += `
+            <div class="timeline-step mb-5 animate-in" style="animation-delay: ${index * 0.1}s">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="step-icon-bg me-3">
+                        <i class="${step.icon} text-primary"></i>
+                    </div>
+                    <h4 class="fw-bold mb-0">${step.title}</h4>
+                </div>
+                <div class="step-card p-4 bg-white rounded-4 shadow-sm border border-light">
+                    <p class="text-muted mb-0">${step.desc}</p>
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById('roadmap-content').innerHTML = html;
+
+    // Update Links
+    document.getElementById('dynamic-links').innerHTML = `
+        <a href="${data.appLink}" target="_blank" class="btn btn-primary btn-sm text-start py-2">
+            <i class="fas fa-university me-2"></i> ${data.appPortal}
+        </a>
+        <a href="${data.visaLink}" target="_blank" class="btn btn-dark btn-sm text-start py-2">
+            <i class="fas fa-passport me-2"></i> Official ${data.visaName} Page
+        </a>
+    `;
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', updateRoadmap);
+</script>
+
+<style>
+.step-icon-bg {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-light);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+.step-card {
+    border-left: 4px solid var(--primary) !important;
+}
+.timeline-step {
+    position: relative;
+}
+.timeline-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 24px;
+    top: 55px;
+    bottom: -30px;
+    width: 2px;
+    background: var(--border);
+    border-style: dashed;
+}
+.btn-outline-secondary:hover {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+</style>
+{% endblock %}
